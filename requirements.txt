@@ -1,3 +1,4 @@
 emolumentos-pr>=0.2.1
 fastapi>=0.110
 uvicorn[standard]>=0.29
+slowapi>=0.1.9
