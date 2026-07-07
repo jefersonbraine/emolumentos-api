@@ -1,0 +1,7 @@
+services:
+  emolumentos-api:
+    build: .
+    container_name: emolumentos_api_container
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
