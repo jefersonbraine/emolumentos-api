@@ -52,7 +52,7 @@ def test_calcular_com_chave_errada_retorna_401():
 # --- Rotas protegidas com chave correta ------------------------------------
 def test_tipos_lista_os_quatro_atos():
     valores = [t["valor"] for t in client.get("/tipos", headers=HEADERS).json()["tipos"]]
-    assert set(valores) == {"compra_e_venda", "doacao", "sem_valor", "procuracao"}
+    assert set(valores) == {"compra_e_venda", "doacao", "sem_valor", "procuracao", "partilha"}
 
 
 def test_calcular_compra_e_venda_formato_brasileiro():
