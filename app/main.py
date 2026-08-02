@@ -19,6 +19,8 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+from app.calculo_web import montar_resposta
+
 from emolumentos_pr import (
     Ato,
     TipoAto,
@@ -146,9 +148,11 @@ def calcular_endpoint(request: Request, pedido: PedidoCalculo) -> dict:
         partes_adicionais=pedido.partes_adicionais,
     )
 
-    try:
-        resultado = calcular(ato)
-    except EmolumentoError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from None
+    # try:
+    #     resultado = calcular(ato)
+    # except EmolumentoError as exc:
+    #     raise HTTPException(status_code=400, detail=str(exc)) from None
 
-    return resultado_para_dict(resultado)
+    return montar_resposta(
+            tipo, objetos, usufruto=pedido.usufruto, partes_adicionais=pedido.partes_adicionais
+        )

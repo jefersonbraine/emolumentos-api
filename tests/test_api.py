@@ -63,8 +63,9 @@ def test_calcular_compra_e_venda_formato_brasileiro():
     )
     assert r.status_code == 200
     dados = r.json()
-    assert dados["total"] == "2043.414"
-    assert dados["total_brl"] == "R$ 2.043,41"
+    assert dados["total_geral"]["total"]["raw"] == "2043.414"
+    assert dados["total_geral"]["total"]["brl"] == "R$ 2.043,41"
+    assert len(dados["itens"]) == 1
 
 
 def test_calcular_multiobjeto():
@@ -73,13 +74,19 @@ def test_calcular_multiobjeto():
         json={"tipo": "compra_e_venda", "valores": ["50000", "30000"]},
         headers=HEADERS,
     )
-    assert r.json()["total"] == "2238.545"
+    dados = r.json()
+    assert dados["total_geral"]["total"]["raw"] == "2238.545"
+    assert len(dados["itens"]) == 2
+    assert dados["itens"][0]["emolumentos"]["brl"] == "R$ 1.133,48"
+    assert dados["itens"][1]["emolumentos"]["brl"] == "R$ 722,97"
 
 
 def test_calcular_sem_valor():
     r = client.post("/calcular", json={"tipo": "sem_valor"}, headers=HEADERS)
     assert r.status_code == 200
-    assert r.json()["total"] == "264.039"
+    dados = r.json()
+    assert dados["total_geral"]["total"]["raw"] == "264.039"
+    assert dados["itens"] == []   # ato sem valor não tem itens
 
 
 def test_tipo_invalido_retorna_400():
