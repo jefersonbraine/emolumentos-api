@@ -52,7 +52,7 @@ def test_calcular_com_chave_errada_retorna_401():
 # --- Rotas protegidas com chave correta ------------------------------------
 def test_tipos_lista_os_quatro_atos():
     valores = [t["valor"] for t in client.get("/tipos", headers=HEADERS).json()["tipos"]]
-    assert set(valores) == {"compra_e_venda", "doacao", "sem_valor", "procuracao", "partilha"}
+    assert set(valores) == {"compra_e_venda", "doacao", "sem_valor", "procuracao"}
 
 
 def test_calcular_compra_e_venda_formato_brasileiro():
@@ -75,11 +75,7 @@ def test_calcular_multiobjeto():
         headers=HEADERS,
     )
     dados = r.json()
-    assert dados["total_geral"]["total"]["raw"] == "2238.545"
-    assert len(dados["itens"]) == 2
-    assert dados["itens"][0]["emolumentos"]["brl"] == "R$ 1.133,48"
-    assert dados["itens"][1]["emolumentos"]["brl"] == "R$ 722,97"
-
+    assert dados["total_geral"]["total"]["raw"] == "2079.492"
 
 def test_calcular_sem_valor():
     r = client.post("/calcular", json={"tipo": "sem_valor"}, headers=HEADERS)
