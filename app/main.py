@@ -73,7 +73,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Em produção, troque ["*"] pelo domínio real do site.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],   # trocar pelo domínio real do front-end em produção
+    allow_origins=["https://emolumentos.jefersonbraineleal.dev"],   # trocar pelo domínio real do front-end em produção
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
