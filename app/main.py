@@ -22,11 +22,8 @@ from slowapi.util import get_remote_address
 from app.calculo_web import montar_resposta
 
 from emolumentos_pr import (
-    Ato,
     TipoAto,
-    calcular,
     parse_valor,
-    resultado_para_dict,
 )
 from emolumentos_pr.erros import EmolumentoError
 
@@ -141,18 +138,9 @@ def calcular_endpoint(request: Request, pedido: PedidoCalculo) -> dict:
             detail="Informe ao menos um valor para este tipo de ato.",
         )
 
-    ato = Ato(
-        tipo=tipo,
-        objetos=objetos,
-        usufruto=pedido.usufruto,
-        partes_adicionais=pedido.partes_adicionais,
-    )
-
-    # try:
-    #     resultado = calcular(ato)
-    # except EmolumentoError as exc:
-    #     raise HTTPException(status_code=400, detail=str(exc)) from None
-
-    return montar_resposta(
+    try:
+        return montar_resposta(
             tipo, objetos, usufruto=pedido.usufruto, partes_adicionais=pedido.partes_adicionais
         )
+    except EmolumentoError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from None

@@ -2,7 +2,6 @@
 
 import os
 
-import pytest
 from fastapi.testclient import TestClient
 
 # Define a API_KEY antes de importar o app, pra ter chave fixa nos testes.
@@ -108,6 +107,28 @@ def test_ato_com_valor_sem_valores_retorna_400():
     r = client.post(
         "/calcular",
         json={"tipo": "compra_e_venda", "valores": []},
+        headers=HEADERS,
+    )
+    assert r.status_code == 400
+
+def test_doacao_usufruto_um_bem_dois_atos():
+    r = client.post(
+        "/calcular",
+        json={"tipo": "doacao", "valores": ["100000"], "usufruto": True},
+        headers=HEADERS,
+    )
+    assert r.status_code == 200
+    dados = r.json()
+    assert len(dados["itens"]) == 2
+    assert dados["itens"][0]["descricao"] == "Nua-propriedade"
+    assert dados["itens"][1]["descricao"] == "Usufruto"
+    assert dados["total_geral"]["funrejus"]["raw"] == "400.000"
+
+
+def test_doacao_usufruto_multiplos_bens_retorna_400():
+    r = client.post(
+        "/calcular",
+        json={"tipo": "doacao", "valores": ["50000", "50000"], "usufruto": True},
         headers=HEADERS,
     )
     assert r.status_code == 400

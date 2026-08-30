@@ -28,7 +28,6 @@ from emolumentos_pr.tabelas import (
     EMOLUMENTO_SEM_VALOR_VRC,
     MAX_UNIDADES_ADICIONAIS,
     PERC_UNIDADE_ADICIONAL,
-    SELO_ESCRITURA,
     SELO_TRASLADO,
     TETO_EMOLUMENTO_VRC,
     TETO_FUNREJUS,
@@ -109,6 +108,41 @@ def _vrc_total_sem_valor(tipo: TipoAto, partes: int) -> Decimal:
         return EMOLUMENTO_PROCURACAO_VRC + partes * VRC_POR_PARTE_ADICIONAL
     return EMOLUMENTO_SEM_VALOR_VRC
 
+def _itens_doacao_usufruto(valor_total: Decimal) -> list[dict]:
+    """Breakdown por ato para doação com reserva de usufruto — dois atos
+    jurídicos distintos (nua-propriedade + instituição de usufruto),
+    conforme Despacho 13298386-CJ (revoga Ofício-Circular 35/2008).
+    Emolumento sobre metade do valor por ato; Funrejus sobre o valor total
+    por ato; Selo com 1 traslado por ato; Distribuidor só no 1º ato.
+    Reconciliado contra o sistema oficial: doação de R$ 100.000,00 ->
+    Nua-propriedade R$ 1.467,28, Usufruto R$ 1.454,83.
+    """
+    metade = valor_total / 2
+    emol_ato = _emolumento_cheio(metade)
+    funrejus_ato = min(valor_total * ALIQUOTA_FUNREJUS, TETO_FUNREJUS)
+    fundep_ato = emol_ato * ALIQUOTA_FUNDEP
+    issqn_ato = emol_ato * ALIQUOTA_ISSQN
+    vrc_cheio = min(tabela_de(TipoAto.COMPRA_E_VENDA).emolumento_vrc(metade), TETO_EMOLUMENTO_VRC)
+
+    itens = []
+    for i, rotulo in enumerate(["Nua-propriedade", "Usufruto"]):
+        distribuidor = DISTRIBUIDOR if i == 0 else ZERO
+        subtotal = emol_ato + funrejus_ato + SELO_TRASLADO + distribuidor + fundep_ato + issqn_ato
+        itens.append({
+            "descricao": rotulo,
+            "valor_base": _brl(metade),
+            "emolumentos": _brl(emol_ato),
+            "funrejus": _brl(funrejus_ato),
+            "selo": _brl(SELO_TRASLADO),
+            "distribuidor": _brl(distribuidor),
+            "folha": _brl(ZERO),
+            "fundep": _brl(fundep_ato),
+            "issqn": _brl(issqn_ato),
+            "vrc": _num(vrc_cheio),
+            "total": _brl(subtotal),
+        })
+    return itens
+
 
 def montar_resposta(
     tipo: TipoAto,
@@ -121,7 +155,11 @@ def montar_resposta(
         Ato(tipo=tipo, objetos=objetos, usufruto=usufruto, partes_adicionais=partes_adicionais)
     )
 
-    if tipo.tem_valor:
+    if tipo is TipoAto.DOACAO and usufruto:
+        itens = _itens_doacao_usufruto(objetos[0])
+        vrc_total = sum((Decimal(i["vrc"]["raw"]) for i in itens), ZERO)
+
+    elif tipo.tem_valor:
         itens = _itens_com_valor(objetos, usufruto)
         vrc_total = sum((Decimal(i["vrc"]["raw"]) for i in itens), ZERO)
     else:
